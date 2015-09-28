@@ -1,0 +1,73 @@
+body {
+	background-color: none;
+}
+form {
+	border: solid black;
+	width: 852px;
+	margin: 0 auto;
+	border-radius:20px;
+}
+h1 {
+	text-align: center;
+}
+
+input[type="text"]
+{
+	border: 1px solid grey;
+}
+
+#ul_skills {
+	margin: 0 auto;
+	width: 432.6px;
+}
+
+#ul_proj, #ul_job, #ul_edu {
+	margin-left: 70px;
+}
+
+li {
+	margin: 10px auto;
+}
+
+table {
+	margin: 0 auto;
+	margin-bottom: 1em;
+}
+
+button {
+	margin-left: 61%;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+
+strong {
+	font-family: 仿宋;
+}
+
+.remove {
+	vertical-align: middle;
+	margin-left: 1em;
+	padding: 0px 1px;
+	background-color: transparent;
+	border: solid 1px;
+}
+
+.remove:hover {
+	color: red;
+}
+
+.add {
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+select {
+	vertical-align: middle;
+}
+
+div.container {
+	width: 700px;
+	margin: 50px auto;
+	border: solid;
+	border-radius:20px;
+}
