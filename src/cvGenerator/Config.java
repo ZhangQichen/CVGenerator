@@ -1,16 +1,14 @@
 package cvGenerator;
 
 public class Config {
-	public class DB
-	{
-		
+	public class DB {
+
 	}
-	
-	public class Host
-	{
-		
+
+	public class Host {
+
 	}
-	
+
 	public class Keys // Keys for parameters, cookies and sessions.
 	{
 		public static final String ID = "ID";
@@ -24,9 +22,8 @@ public class Config {
 		public static final String JOBS = "JOBS";
 		public static final String EDUCATION = "EDUCATION";
 	}
-	
-	public class HtmlFormComponents
-	{
+
+	public class HtmlFormComponents {
 		public static final String NAME = "NAME";
 		public static final String E_MAIL = "E_MAIL";
 		public static final String PHONE_NUMBER = "PHONE_NUMBER";

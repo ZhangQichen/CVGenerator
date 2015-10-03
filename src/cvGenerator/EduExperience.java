@@ -14,6 +14,22 @@ public class EduExperience {
 		this.Description = description;
 	}
 	
+	public String get(int i) {
+		switch(i) {
+			case 1:
+				return SchoolName;
+			case 2:
+				return Degree;
+			case 3:
+				return Description;
+			case 4:
+				return GraduationTime;
+			default:
+				break;
+		}
+		return "error!";
+	}
+	
 	@Override
 	public String toString()
 	{
