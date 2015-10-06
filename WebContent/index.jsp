@@ -28,12 +28,22 @@ if (request.getMethod().equalsIgnoreCase("get"))
 		}
 		
 		String target = "", phoneNumber = "";
-		ArrayList<Skill> skills = new ArrayList<>();
-		ArrayList<Project> projects = new ArrayList<>();
-		ArrayList<Job> jobs = new ArrayList<>();
-		ArrayList<EduExperience> eduExperiences = new ArrayList<>();
-		// Retrieve from DB synchronously.
-		// ....
+		ArrayList<Skill> skills;
+		ArrayList<Project> projects;
+		ArrayList<Job> jobs;
+		ArrayList<EduExperience> eduExperiences;
+		
+		// Retrieve data from DB synchronously.
+		DBOperator.OpenDB();
+		Person MyInfo = DBOperator.RetrievePersonInfo(id);
+		target = MyInfo.Target;
+		phoneNumber = MyInfo.PhoneNumber;
+		skills = DBOperator.RetrieveSkills(id);
+		projects = DBOperator.RetrieveProjects(id);
+		jobs = DBOperator.RetrieveJobs(id);
+		eduExperiences = DBOperator.RetrieveEduExperiences(id);
+		DBOperator.CloseDB();
+		
 		// Store data into session.
 		session.setAttribute(Config.Keys.PHONE_NUMBER, phoneNumber);
 		session.setAttribute(Config.Keys.TARGET, target);

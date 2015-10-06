@@ -2,13 +2,41 @@ body {
 	background-color: none;
 }
 form {
-	border: solid black;
+	border: solid lightblue;
 	width: 852px;
 	margin: 0 auto;
-	border-radius:20px;
+	background-color: lightblue
 }
+
 h1 {
 	text-align: center;
+}
+
+input[type="submit"]
+{
+	margin-left: 61%;
+	font-size: 1em;
+	padding: 10px;
+	background-color: aliceblue;
+	border-radius: 5px;
+	border: black solid 1px;
+}
+
+input[type="submit"]:hover
+{
+	font-size: 1.2em
+}
+
+.add
+{
+	background-color: aliceblue;
+	border: black solid 1px;
+	border-radius: 5px;
+}
+
+.add:hover
+{
+	font-size: 1.2em
 }
 
 input[type="text"]
@@ -22,11 +50,15 @@ input[type="text"]
 }
 
 #ul_proj, #ul_job, #ul_edu {
-	margin-left: 70px;
+	margin: 0 auto;
+	width: 500px;
 }
 
-li {
-	margin: 10px auto;
+#ul_proj li,  #ul_job li, #ul_edu li {
+	border-bottom: 1px black solid;
+	padding-bottom: 1em;
+	margin-bottom: 1.2em;
+	
 }
 
 table {
@@ -36,15 +68,11 @@ table {
 
 button {
 	margin-left: 61%;
-	margin-top: 1em;
 	margin-bottom: 1em;
 }
 
-strong {
-	font-family: 仿宋;
-}
-
 .remove {
+	margin-top: 1em;
 	vertical-align: middle;
 	margin-left: 1em;
 	padding: 0px 1px;
@@ -56,11 +84,6 @@ strong {
 	color: red;
 }
 
-.add {
-	padding-left: 1em;
-	padding-right: 1em;
-}
-
 select {
 	vertical-align: middle;
 }
@@ -69,5 +92,29 @@ div.container {
 	width: 700px;
 	margin: 50px auto;
 	border: solid;
-	border-radius:20px;
+}
+
+#div_basic {
+	border: solid floralwhite;
+	background-color: floralwhite
+}
+
+#div_skills {
+	border: solid floralwhite;
+	background-color: floralwhite
+}
+
+#div_proj {
+	border: solid floralwhite;
+	background-color: floralwhite
+}
+
+#div_jobs {
+	border: solid floralwhite;
+	background-color: floralwhite
+}
+
+#div_edu {
+	border: solid floralwhite;
+	background-color: floralwhite
 }
