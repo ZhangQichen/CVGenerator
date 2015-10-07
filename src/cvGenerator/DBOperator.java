@@ -1,32 +1,65 @@
 package cvGenerator;
 import java.util.*;
+import com.ms.*;
+import java.sql.*;
 
 public class DBOperator {
 	public static void OpenDB()
 	{
-		
+		//
 	}
 	
 	public static void CloseDB()
 	{
-		
+		//
 	}
 	
 	public static String GetOrCreateId(String name, String gender, String email)
 	{
 		String id = "";
+		ResultSet rSet = Sql_c.ExecuteQuery(String.format("select id from person where name = '%s' and gender = '%s' and email = '%s'", name, gender, email));
+		try {
+			if (rSet.next())
+			{
+				return rSet.getString("id");
+			}
+			else
+			{
+				Sql_c.ExcuteUpdate(String.format("insert into person(name, gender, email) values(%s,%s,%s)", name, gender, email));
+				rSet = Sql_c.ExecuteQuery(String.format("select id from person where name = '%s' and gender = '%s' and email = '%s'", name, gender, email));
+				rSet.next();
+				return rSet.getString("id");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return id;
 	}
 	
 	public static Person RetrievePersonInfo(String person_id)
 	{
 		Person result = new Person();
+		/*
+		ResultSet rSet = Sql_c.ExecuteQuery(String.format("select * from person where id=%s", person_id));
+		try {
+			rSet.next();
+			result.Id = person_id;
+			result.Email = rSet.getString("email");
+			result.Gender = rSet.getString("gender");
+			result.Name = rSet.getString("name");
+			result.PhoneNumber = rSet.getString("phone_number");
+			result.Target = rSet.getString("target");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}*/
+		
 		return result;
 	}
 	
 	public static ArrayList<Skill> RetrieveSkills(String person_id)
 	{
 		ArrayList<Skill> result = new ArrayList<>();
+		
 		return result;
 	}
 	
