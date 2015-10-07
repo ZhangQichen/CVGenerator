@@ -11,10 +11,18 @@ public class MySql_Job {
 	public boolean insert(int id, Job job) {
 		Sql_c.connect();
 		try {
-			String sqlSentence = "select * from person_job where id='" + id + "'";
+			String sqlSentence = "select * from person_job where person_id='" + id + "'";
 			ResultSet rs = Sql_c.ExecuteQuery(sqlSentence);
 			if (rs.next()) {
-				msg = "id exists!";
+				sqlSentence = "update person_job set company_name='" + job.get(1) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_job set time='" + job.get(2) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_job set position='" + job.get(3) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_job set description='" + job.get(4) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				msg = "Update Succed!";
 			} else {
 				sqlSentence = "insert into person_job(person_id, company_name, time, position, description) values('"
 						+ id + "','" + job.get(1) + "','" + job.get(2) + "','" + job.get(3) + "','" + job.get(4) + "')";

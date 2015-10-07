@@ -14,7 +14,17 @@ public class MySql_Infor {
 			String sqlSentence = "select * from person where id='" + id + "'";
 			ResultSet rs = Sql_c.ExecuteQuery(sqlSentence);
 			if (rs.next()) {
-				msg = "id exists!";
+				sqlSentence = "update person set name='" + infor.get(1) + "' where id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person set gender='" + infor.get(2) + "' where id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person set email='" + infor.get(3) + "' where id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person set target='" + infor.get(4) + "' where id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person set phone_number='" + infor.get(5) + "' where id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				msg = "Update Succed!";
 			} else {
 				sqlSentence = "insert into person(name, gender, email, target, phone_number) values('" + infor.get(1)
 						+ "','" + infor.get(2) + "','" + infor.get(3) + "','" + infor.get(4) + "','" + infor.get(5)
@@ -38,7 +48,7 @@ public class MySql_Infor {
 		ResultSet rs = Sql_c.ExecuteQuery(sqlSentence);
 		while (rs != null && rs.next()) {
 			infors.add(new Infor(rs.getString("name"), rs.getString("gender"), rs.getString("eamil"),
-					rs.getString("target"), rs.getString("phone_num")));
+					rs.getString("target"), rs.getString("phone_number")));
 		}
 		Sql_c.disconnect();
 		return infors;

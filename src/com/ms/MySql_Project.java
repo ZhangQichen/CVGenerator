@@ -11,10 +11,16 @@ public class MySql_Project {
 	public boolean insert(int id, Project project) {
 		Sql_c.connect();
 		try {
-			String sqlSentence = "select * from person_project where id='" + id + "'";
+			String sqlSentence = "select * from person_project where person_id='" + id + "'";
 			ResultSet rs = Sql_c.ExecuteQuery(sqlSentence);
 			if (rs.next()) {
-				msg = "id exists!";
+				sqlSentence = "update person_project set project_name='" + project.get_name() + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_project set time='" + project.get_time() + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_project set description='" + project.get_des() + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				msg = "Update Succed!";
 			} else {
 				sqlSentence = "insert into person_project(person_id, project_name, time, description) values('" + id
 						+ "','" + project.get_name() + "','" + project.get_time() + "','" + project.get_des() + "')";
