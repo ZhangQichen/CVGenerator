@@ -11,10 +11,18 @@ public class MySql_Edu {
 	public boolean insert(int id, EduExperience edu) {
 		Sql_c.connect();
 		try {
-			String sqlSentence = "select * from person_edu where id='" + id + "'";
+			String sqlSentence = "select * from person_edu where person_id='" + id + "'";
 			ResultSet rs = Sql_c.ExecuteQuery(sqlSentence);
 			if (rs.next()) {
-				msg = "id exists!";
+				sqlSentence = "update person_edu set school_name='" + edu.get(1) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_edu set degree='" + edu.get(2) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_edur set description='" + edu.get(3) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_edu set time='" + edu.get(4) + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				msg = "Update Succed!";
 			} else {
 				sqlSentence = "insert into person_edu(person_id, school_name, degree, description, time) values('" + id
 						+ "','" + edu.get(1) + "','" + edu.get(2) + "','" + edu.get(3) + "','" + edu.get(4) + "')";

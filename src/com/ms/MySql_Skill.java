@@ -11,10 +11,14 @@ public class MySql_Skill {
 	public boolean insert(int id, Skill skill) {
 		Sql_c.connect();
 		try {
-			String sqlSentence = "select * from person_skill where id='" + id + "'";
+			String sqlSentence = "select * from person_skill where person_id='" + id + "'";
 			ResultSet rs = Sql_c.ExecuteQuery(sqlSentence);
 			if (rs.next()) {
-				msg = "id exists!";
+				sqlSentence = "update person_skill set skill_name='" + skill.get_name() + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				sqlSentence = "update person_skill set level='" + skill.get_level() + "' where person_id='" + id +"'";
+				Sql_c.ExcuteUpdate(sqlSentence);
+				msg = "Update Succed!";
 			} else {
 				sqlSentence = "insert into person_skill(person_id, skill_name, level) values('"
 						+ id + "','" + skill.get_name() + "','" + skill.get_level() + "')";
