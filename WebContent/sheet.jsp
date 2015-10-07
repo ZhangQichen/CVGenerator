@@ -1,10 +1,12 @@
+<%@page import="java.io.OutputStream"%>
+<%@page import="com.sun.xml.internal.bind.v2.runtime.Name"%>
 <%@page import="javafx.scene.control.Alert"%>
-<%@ page language="java" contentType="text/html; charset=UTF-8" import="java.util.ArrayList, cvGenerator.*"
+<%@ page language="java" contentType="text/html; charset=UTF-8" import="java.util.ArrayList, cvGenerator.*, java.io.*"
     pageEncoding="UTF-8"%>
 <%!
-String username = "Zhang";
+String username = "";
 String userId = "";
-String gender = "";
+String gender = "female";
 String phoneNumber = "";
 String email = "";
 String target = "";
@@ -18,16 +20,17 @@ ArrayList<EduExperience> eduExperiences;
 void ReadBasicInfo(HttpServletRequest request)
 {
 	username = request.getParameter(Config.HtmlFormComponents.NAME);
-	gender = request.getParameter(Config.HtmlFormComponents.NAME);
+	gender = request.getParameter(Config.HtmlFormComponents.GENDER);
 	phoneNumber = request.getParameter(Config.HtmlFormComponents.PHONE_NUMBER);
 	email = request.getParameter(Config.HtmlFormComponents.E_MAIL);
-	target = request.getParameter(Config.HtmlFormComponents.GENDER);
+	target = request.getParameter(Config.HtmlFormComponents.OBJECT);
 }
 
 void ReadSkills(HttpServletRequest request)
 {
 	skills = new ArrayList<Skill>();
 	String[] skillNames = request.getParameterValues(Config.HtmlFormComponents.SKILL_NAME);
+	if (skillNames == null) return;
 	String[] skillLevel = request.getParameterValues(Config.HtmlFormComponents.SKILL_LEVEL);
 	for (int i = 0; i < skillNames.length; ++i)
 	{
@@ -39,6 +42,7 @@ void ReadProjects(HttpServletRequest request)
 {
 	projects = new ArrayList<Project>();
 	String[] projNames = request.getParameterValues(Config.HtmlFormComponents.PROJECT_NAME);
+	if (projNames == null) return;
 	String[] projTimeSpan = request.getParameterValues(Config.HtmlFormComponents.PROJECT_TIMESPAN);
 	String[] projDescription = request.getParameterValues(Config.HtmlFormComponents.PROJECT_DESCRIPTION);
 	for(int i = 0; i < projNames.length; ++i)
@@ -51,6 +55,7 @@ void ReadJobs(HttpServletRequest request)
 {
 	jobs = new ArrayList<Job>();
 	String[] jobCompanyName = request.getParameterValues(Config.HtmlFormComponents.JOB_COMPANY_NAME);
+	if (jobCompanyName == null) return;
 	String[] jobPosition = request.getParameterValues(Config.HtmlFormComponents.JOB_POSITION);
 	String[] jobTimeSpan = request.getParameterValues(Config.HtmlFormComponents.JOB_TIMESPAN);
 	String[] jobDescription = request.getParameterValues(Config.HtmlFormComponents.JOB_DESCRIPTION);
@@ -62,6 +67,7 @@ void ReadEdu(HttpServletRequest request)
 {
 	eduExperiences = new ArrayList<EduExperience>();
 	String[] eduSchoolName = request.getParameterValues(Config.HtmlFormComponents.EDU_SCHOOL_NAME);
+	if (eduSchoolName == null) return;
 	String[] eduGraduationTime = request.getParameterValues(Config.HtmlFormComponents.EDU_GRADUATION_TIME);
 	String[] eduDegree = request.getParameterValues(Config.HtmlFormComponents.EDU_DEGREE);
 	String[] eduDescription = request.getParameterValues(Config.HtmlFormComponents.EDU_DESCRIPTION);
@@ -69,6 +75,22 @@ void ReadEdu(HttpServletRequest request)
 	{
 		eduExperiences.add(new EduExperience(eduSchoolName[i], eduGraduationTime[i], eduDegree[i], eduDescription[i]));
 	}
+}
+
+void WriteFile(OutputStream oStream, String filepath)
+{
+   try {
+      FileInputStream in = new FileInputStream(filepath);
+      int bytesRead = 0;
+      byte buf[]=new byte[2048];
+      while((bytesRead = in.read(buf)) != -1){
+        oStream.write(buf, 0, bytesRead);
+      }
+      in.close();
+      oStream.close();
+   }
+   catch(Exception e){
+   }
 }
 %>
 <%
@@ -82,11 +104,54 @@ if (method.equalsIgnoreCase("post"))
 	ReadJobs(request);
 	ReadEdu(request);
 	
+	DBOperator.OpenDB();
+	// Get id from DB for this user. Create one id if such user does not exist.
+	userId = DBOperator.GetOrCreateId(username, gender, email);
 	// Store the submited information to the DB asynchronously.
-	// ......
-	// Generate Microsoft Word file and return it to the client.
-	// ......
+	DBOperator.AlterTarget(userId, target);
+	DBOperator.AlterPhoneNumber(userId, phoneNumber);
+	DBOperator.AlterSkills(userId, skills);
+	DBOperator.AlterProjects(userId, projects);
+	DBOperator.AlterJobs(userId, jobs);
+	DBOperator.AlterEdu(userId, eduExperiences);
+	DBOperator.CloseDB();
 	
+	// Store Cookies
+	Cookie cookie_id = new Cookie(Config.Keys.ID, userId);
+	cookie_id.setPath("/");
+	cookie_id.setMaxAge(3600*5);
+	response.addCookie(cookie_id);
+	Cookie cookie_username = new Cookie(Config.Keys.NAME, username);
+	cookie_username.setPath("/");
+	cookie_username.setMaxAge(3600*5);
+	response.addCookie(cookie_username);
+	Cookie cookie_gender = new Cookie(Config.Keys.GENDER, gender);
+	cookie_gender.setPath("/");
+	cookie_gender.setMaxAge(3600*5);
+	response.addCookie(cookie_gender);
+	Cookie cookie_email = new Cookie(Config.Keys.E_MAIL, email);
+	cookie_email.setPath("/");
+	cookie_email.setMaxAge(3600*5);
+	response.addCookie(cookie_email);
+	
+	// Generate Microsoft Word file and return it to the client.
+	Person myInfo = new Person();
+	myInfo.Email = email;
+	myInfo.Gender = gender;
+	myInfo.Id = userId;
+	myInfo.Name = username;
+	myInfo.PhoneNumber = phoneNumber;
+	myInfo.Target = target;
+	PoiDocument document = PoiDocument.CreateNewDocument();
+	document.WriteBasicInformation(myInfo);
+	document.WriteEduExperience(eduExperiences);
+	document.WriteJobs(jobs);
+	document.WriteProjects(projects);
+	document.WriteSkills(skills);
+	String filepath = document.CompleteDocument();
+	response.setHeader("Content-disposition", "attachment; filename=\""+filepath+"\"");
+	WriteFile(response.getOutputStream(), filepath);
+	/*
 	for(Skill skill : skills)
 		out.println(skill.toString());
 	for(Project project : projects)
@@ -94,7 +159,7 @@ if (method.equalsIgnoreCase("post"))
 	for(Job job : jobs)
 		out.println(job.toString());
 	for(EduExperience eduExperience : eduExperiences)
-		out.println(eduExperience.toString());
+		out.println(eduExperience.toString());*/
 }
 else
 {
@@ -114,7 +179,7 @@ else
 		gender = request.getParameter(Config.Keys.GENDER);
 		email = request.getParameter(Config.Keys.E_MAIL);
 		
-		// get data from session
+		// retrive data from session
 		phoneNumber = (String)session.getAttribute(Config.Keys.PHONE_NUMBER);
 		target = (String)session.getAttribute(Config.Keys.TARGET);
 		skills = (ArrayList<Skill>)session.getAttribute(Config.Keys.SKILLS);
@@ -448,12 +513,11 @@ var isSubmit = false;
 
 function displayData()
 {
-	
 	<%
-	skills.add(new Skill("C++", "expert"));
-	projects.add(new Project("MFC", "2015-2016", "PM"));
-	jobs.add(new Job("MS", "PM", "2015-2016", "GOOD"));
-	eduExperiences.add(new EduExperience("SYSU", "2012-2016", "Bachelor", "GPA=3.8"));
+	//skills.add(new Skill("C++", "expert"));
+	//projects.add(new Project("MFC", "2015-2016", "PM"));
+	//jobs.add(new Job("MS", "PM", "2015-2016", "GOOD"));
+	//eduExperiences.add(new EduExperience("SYSU", "2012-2016", "Bachelor", "GPA=3.8"));
 	%>
 	<%for (int i = 0; i < skills.size(); ++i)
 	{%>
@@ -490,11 +554,10 @@ window.onload = function()
 	displayData();
 }
 
-
 </script>
 <body>
 	<form action="sheet.jsp" method="post" onsubmit="return validate(this)">
-		<div class="container">
+		<div class="container" id="div_basic">
 			<h1>基本信息</h1>
 			<div>
 				<table>
@@ -504,8 +567,8 @@ window.onload = function()
 						<td><strong>性别：</strong></td>
 						<td>
 							<select name="<%=Config.HtmlFormComponents.GENDER%>">
-								<option value="male" selected="selected">男</option>
-								<option value="femail">女</option>
+								<option value="male" <%=gender.equalsIgnoreCase("male")?"selected":""%>>男</option>
+								<option value="female" <%=gender.equalsIgnoreCase("female")?"selected":""%>>女</option>
 							</select>
 						</td>
 					</tr>
@@ -525,35 +588,36 @@ window.onload = function()
 			</div>
 		</div>
 		
-		<div class="container">
+		<div class="container" id="div_skills">
 			<h1>技能</h1>
 			<ul id="ul_skills">
 			</ul>
-			<button id="btn_add_skill" class="add" onclick="addEmpeySkillItem()">添加</button>
+			<button id="btn_add_skill" class="add" onclick="addEmpeySkillItem()">+</button>
 		</div>
 
-		<div class="container">
+		<div class="container" id="div_proj">
 			<h1>项目经历</h1>
 			<ul id="ul_proj">
 			</ul>
-			<button id="btn_add_proj" onclick="addEmpeyProjectItem()" class="add">添加</button>
+			<button id="btn_add_proj" onclick="addEmpeyProjectItem()" class="add">+</button>
 		</div>
 		
-		<div class="container">
+		<div class="container" id="div_jobs">
 			<h1>工作经历</h1>
 			<ul id="ul_job">
 			</ul>
-			<button id="btn_add_job" class="add" onclick="addEmpeyJobItem()">添加</button>
+			<button id="btn_add_job" class="add" onclick="addEmpeyJobItem()">+</button>
 		</div>
 		
-		<div class="container">
+		<div class="container" id="div_edu">
 			<h1>教育经历</h1>
 			<ul id="ul_edu">
 			</ul>
-			<button id="btn_add_edu" class="add" onclick="addEmptyEduItem()">添加</button>
+			<button id="btn_add_edu" class="add" onclick="addEmptyEduItem()">+</button>
 		</div>
 		
-		<input type="submit" onclick="isSubmit = true" value="生成简历"/>
+		<input type="submit" onclick="isSubmit = true" value="^_^ 生成并下载简历"/>
+		<br/><br/>
 	</form>
 </body>
 </html>
