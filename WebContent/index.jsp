@@ -2,7 +2,9 @@
     pageEncoding="utf-8"%>
 <%
 request.setCharacterEncoding("utf-8");
-if (request.getMethod().equalsIgnoreCase("get"))
+String method = request.getMethod();
+System.out.println("index.jsp: method " + method);
+if (method.equalsIgnoreCase("get"))
 {
 	out.print("<strong>正在查询请稍后...</strong>");
 	Cookie[] cookies = request.getCookies();
@@ -26,32 +28,22 @@ if (request.getMethod().equalsIgnoreCase("get"))
 			if (cookieName.equals(Config.Keys.E_MAIL))
 				email = cookieValue;
 		}
-		
+		if (id == null || id == "")
+		{
+			response.sendRedirect("sheet.jsp");
+			return;
+		}
 		String target = "", phoneNumber = "";
-		ArrayList<Skill> skills;
-		ArrayList<Project> projects;
-		ArrayList<Job> jobs;
-		ArrayList<EduExperience> eduExperiences;
-		
 		// Retrieve data from DB synchronously.
-		DBOperator.OpenDB();
 		Person MyInfo = DBOperator.RetrievePersonInfo(id);
 		target = MyInfo.Target;
 		phoneNumber = MyInfo.PhoneNumber;
-		skills = DBOperator.RetrieveSkills(id);
-		projects = DBOperator.RetrieveProjects(id);
-		jobs = DBOperator.RetrieveJobs(id);
-		eduExperiences = DBOperator.RetrieveEduExperiences(id);
-		DBOperator.CloseDB();
-		
+		if (target == null) target = "";
+		if (phoneNumber == null) phoneNumber = "";
 		// Store data into session.
 		session.setAttribute(Config.Keys.PHONE_NUMBER, phoneNumber);
 		session.setAttribute(Config.Keys.TARGET, target);
-		session.setAttribute(Config.Keys.SKILLS, skills);
-		session.setAttribute(Config.Keys.PROJECTS, projects);
-		session.setAttribute(Config.Keys.JOBS, jobs);
-		session.setAttribute(Config.Keys.EDUCATION, eduExperiences);
-		response.sendRedirect(String.format("sheet.jsp?%s=%s&%s=%s&%s=%s&%s=%s", Config.Keys.ID, id, Config.Keys.NAME, name, Config.Keys.GENDER, gender, Config.Keys.E_MAIL, email));
+		response.sendRedirect(String.format("sheet.jsp?%s=%s&%s=%s&%s=%s&%s=%s&time=%d", Config.Keys.ID, id, Config.Keys.NAME, name, Config.Keys.GENDER, gender, Config.Keys.E_MAIL, email, System.nanoTime()));
 	}
 }
 

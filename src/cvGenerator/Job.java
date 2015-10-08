@@ -13,22 +13,6 @@ public class Job {
 		this.Description = description;
 	}
 
-	public String get(int i) {
-		switch (i) {
-		case 1:
-			return CompanyName;
-		case 2:
-			return TimeSpan;
-		case 3:
-			return Position;
-		case 4:
-			return Description;
-		default:
-			break;
-		}
-		return "error!";
-	}
-
 	@Override
 	public String toString() {
 		return String.format("Company: %s\nPosition: %s\nTime: %s\nDescription: %s\n", CompanyName, Position, TimeSpan,

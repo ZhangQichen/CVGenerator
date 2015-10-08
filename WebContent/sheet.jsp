@@ -4,173 +4,24 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" import="java.util.ArrayList, cvGenerator.*, java.io.*"
     pageEncoding="UTF-8"%>
 <%!
+String method = "get";
 String username = "";
 String userId = "";
 String gender = "female";
 String phoneNumber = "";
 String email = "";
 String target = "";
-String method = "get";
-
-ArrayList<Skill> skills;
-ArrayList<Project> projects;
-ArrayList<Job> jobs;
-ArrayList<EduExperience> eduExperiences;
-
-void ReadBasicInfo(HttpServletRequest request)
-{
-	username = request.getParameter(Config.HtmlFormComponents.NAME);
-	gender = request.getParameter(Config.HtmlFormComponents.GENDER);
-	phoneNumber = request.getParameter(Config.HtmlFormComponents.PHONE_NUMBER);
-	email = request.getParameter(Config.HtmlFormComponents.E_MAIL);
-	target = request.getParameter(Config.HtmlFormComponents.OBJECT);
-}
-
-void ReadSkills(HttpServletRequest request)
-{
-	skills = new ArrayList<Skill>();
-	String[] skillNames = request.getParameterValues(Config.HtmlFormComponents.SKILL_NAME);
-	if (skillNames == null) return;
-	String[] skillLevel = request.getParameterValues(Config.HtmlFormComponents.SKILL_LEVEL);
-	for (int i = 0; i < skillNames.length; ++i)
-	{
-		skills.add(new Skill(skillNames[i], skillLevel[i]));
-	}
-}
-
-void ReadProjects(HttpServletRequest request)
-{
-	projects = new ArrayList<Project>();
-	String[] projNames = request.getParameterValues(Config.HtmlFormComponents.PROJECT_NAME);
-	if (projNames == null) return;
-	String[] projTimeSpan = request.getParameterValues(Config.HtmlFormComponents.PROJECT_TIMESPAN);
-	String[] projDescription = request.getParameterValues(Config.HtmlFormComponents.PROJECT_DESCRIPTION);
-	for(int i = 0; i < projNames.length; ++i)
-	{
-		projects.add(new Project(projNames[i], projTimeSpan[i], projDescription[i]));
-	}
-}
-
-void ReadJobs(HttpServletRequest request)
-{
-	jobs = new ArrayList<Job>();
-	String[] jobCompanyName = request.getParameterValues(Config.HtmlFormComponents.JOB_COMPANY_NAME);
-	if (jobCompanyName == null) return;
-	String[] jobPosition = request.getParameterValues(Config.HtmlFormComponents.JOB_POSITION);
-	String[] jobTimeSpan = request.getParameterValues(Config.HtmlFormComponents.JOB_TIMESPAN);
-	String[] jobDescription = request.getParameterValues(Config.HtmlFormComponents.JOB_DESCRIPTION);
-	for(int i = 0; i < jobCompanyName.length; ++i)
-		jobs.add(new Job(jobCompanyName[i], jobPosition[i], jobTimeSpan[i], jobDescription[i]));
-}
-
-void ReadEdu(HttpServletRequest request)
-{
-	eduExperiences = new ArrayList<EduExperience>();
-	String[] eduSchoolName = request.getParameterValues(Config.HtmlFormComponents.EDU_SCHOOL_NAME);
-	if (eduSchoolName == null) return;
-	String[] eduGraduationTime = request.getParameterValues(Config.HtmlFormComponents.EDU_GRADUATION_TIME);
-	String[] eduDegree = request.getParameterValues(Config.HtmlFormComponents.EDU_DEGREE);
-	String[] eduDescription = request.getParameterValues(Config.HtmlFormComponents.EDU_DESCRIPTION);
-	for(int i = 0; i < eduSchoolName.length; ++i)
-	{
-		eduExperiences.add(new EduExperience(eduSchoolName[i], eduGraduationTime[i], eduDegree[i], eduDescription[i]));
-	}
-}
-
-void WriteFile(OutputStream oStream, String filepath)
-{
-   try {
-      FileInputStream in = new FileInputStream(filepath);
-      int bytesRead = 0;
-      byte buf[]=new byte[2048];
-      while((bytesRead = in.read(buf)) != -1){
-        oStream.write(buf, 0, bytesRead);
-      }
-      in.close();
-      oStream.close();
-   }
-   catch(Exception e){
-   }
-}
 %>
 <%
 request.setCharacterEncoding("utf-8");
 method = request.getMethod();
-if (method.equalsIgnoreCase("post"))
-{
-	ReadBasicInfo(request);
-	ReadSkills(request);
-	ReadProjects(request);
-	ReadJobs(request);
-	ReadEdu(request);
-	
-	DBOperator.OpenDB();
-	// Get id from DB for this user. Create one id if such user does not exist.
-	userId = DBOperator.GetOrCreateId(username, gender, email);
-	// Store the submited information to the DB asynchronously.
-	DBOperator.AlterTarget(userId, target);
-	DBOperator.AlterPhoneNumber(userId, phoneNumber);
-	DBOperator.AlterSkills(userId, skills);
-	DBOperator.AlterProjects(userId, projects);
-	DBOperator.AlterJobs(userId, jobs);
-	DBOperator.AlterEdu(userId, eduExperiences);
-	DBOperator.CloseDB();
-	
-	// Store Cookies
-	Cookie cookie_id = new Cookie(Config.Keys.ID, userId);
-	cookie_id.setPath("/");
-	cookie_id.setMaxAge(3600*5);
-	response.addCookie(cookie_id);
-	Cookie cookie_username = new Cookie(Config.Keys.NAME, username);
-	cookie_username.setPath("/");
-	cookie_username.setMaxAge(3600*5);
-	response.addCookie(cookie_username);
-	Cookie cookie_gender = new Cookie(Config.Keys.GENDER, gender);
-	cookie_gender.setPath("/");
-	cookie_gender.setMaxAge(3600*5);
-	response.addCookie(cookie_gender);
-	Cookie cookie_email = new Cookie(Config.Keys.E_MAIL, email);
-	cookie_email.setPath("/");
-	cookie_email.setMaxAge(3600*5);
-	response.addCookie(cookie_email);
-	
-	// Generate Microsoft Word file and return it to the client.
-	Person myInfo = new Person();
-	myInfo.Email = email;
-	myInfo.Gender = gender;
-	myInfo.Id = userId;
-	myInfo.Name = username;
-	myInfo.PhoneNumber = phoneNumber;
-	myInfo.Target = target;
-	PoiDocument document = PoiDocument.CreateNewDocument();
-	document.WriteBasicInformation(myInfo);
-	document.WriteEduExperience(eduExperiences);
-	document.WriteJobs(jobs);
-	document.WriteProjects(projects);
-	document.WriteSkills(skills);
-	String filepath = document.CompleteDocument();
-	response.setHeader("Content-disposition", "attachment; filename=\""+filepath+"\"");
-	WriteFile(response.getOutputStream(), filepath);
-	/*
-	for(Skill skill : skills)
-		out.println(skill.toString());
-	for(Project project : projects)
-		out.println(project.toString());
-	for(Job job : jobs)
-		out.println(job.toString());
-	for(EduExperience eduExperience : eduExperiences)
-		out.println(eduExperience.toString());*/
-}
-else
+System.out.println("sheet.jsp: method " + method);
+if (method.equalsIgnoreCase("get"))
 {
 	userId = request.getParameter(Config.Keys.ID);
+	//System.out.println(userId);
 	if (userId == null || userId.length() == 0)
 	{
-		// no parameters, do nothing
-		skills = new ArrayList<>();
-		projects = new ArrayList<>();
-		jobs = new ArrayList<>();
-		eduExperiences = new ArrayList<>();
 	}
 	else
 	{
@@ -182,10 +33,7 @@ else
 		// retrive data from session
 		phoneNumber = (String)session.getAttribute(Config.Keys.PHONE_NUMBER);
 		target = (String)session.getAttribute(Config.Keys.TARGET);
-		skills = (ArrayList<Skill>)session.getAttribute(Config.Keys.SKILLS);
-		projects = (ArrayList<Project>)session.getAttribute(Config.Keys.PROJECTS);
-		jobs = (ArrayList<Job>)session.getAttribute(Config.Keys.JOBS);
-		eduExperiences = (ArrayList<EduExperience>)session.getAttribute(Config.Keys.EDUCATION);
+		//System.out.println("get Sheet.jsp?userid=xxx");
 	}
 }
 %>
@@ -199,6 +47,7 @@ else
 	</style>
 </head>
 <script type="text/javascript">
+var userId = <%=userId%>;
 function removeElement(_element){
 	var _parentElement = _element.parentNode;
 	if(_parentElement){
@@ -221,7 +70,7 @@ function addSkillItem(skill_name, skill_level)
 	
 	var input1 = document.createElement("input");
 	input1.setAttribute("type", "text");
-	input1.setAttribute("name", "<%=Config.HtmlFormComponents.SKILL_NAME%>");
+	input1.setAttribute("name", "SKILL_NAME");
 	input1.setAttribute("value", skill_name);
 	li.appendChild(input1);
 	
@@ -230,12 +79,12 @@ function addSkillItem(skill_name, skill_level)
 	li.appendChild(strong);
 	
 	var select = document.createElement("select");
-	select.setAttribute("name", "<%=Config.HtmlFormComponents.SKILL_LEVEL%>");
+	select.setAttribute("name", "SKILL_LEVEL");
 	var opt1 = document.createElement("option");
 	opt1.setAttribute("value", "familiar");
 	opt1.appendChild(document.createTextNode("熟练"));
 	var opt2 = document.createElement("option");
-	opt1.setAttribute("value", "expert");
+	opt2.setAttribute("value", "expert");
 	opt2.appendChild(document.createTextNode("精通"));
 	if (skill_level != null && skill_level == "expert") opt2.setAttribute("selected", "selected");
 	else opt1.setAttribute("selected", "selected");
@@ -266,7 +115,7 @@ function addProjectItem(project_name, project_timespan, project_description)
 	
 	var input1 = document.createElement("input");
 	input1.setAttribute("type", "text");
-	input1.setAttribute("name", "<%=Config.HtmlFormComponents.PROJECT_NAME%>");
+	input1.setAttribute("name", "PROJECT_NAME");
 	input1.setAttribute("value", project_name);
 	li.appendChild(input1);
 	
@@ -276,7 +125,7 @@ function addProjectItem(project_name, project_timespan, project_description)
 	
 	var input2 = document.createElement("input");
 	input2.setAttribute("type", "text");
-	input2.setAttribute("name", "<%=Config.HtmlFormComponents.PROJECT_TIMESPAN%>");
+	input2.setAttribute("name", "PROJECT_TIMESPAN");
 	input2.setAttribute("value", project_timespan);
 	li.appendChild(input2);
 	
@@ -293,7 +142,7 @@ function addProjectItem(project_name, project_timespan, project_description)
 	li.appendChild(document.createElement("br"));
 	
 	var textarea = document.createElement("textarea");
-	textarea.setAttribute("name", "<%=Config.HtmlFormComponents.PROJECT_DESCRIPTION%>");
+	textarea.setAttribute("name", "PROJECT_DESCRIPTION");
 	textarea.setAttribute("rows", "5");
 	textarea.setAttribute("cols", "58");
 	textarea.appendChild(document.createTextNode(project_description));
@@ -317,7 +166,7 @@ function addJobItem(company_name, position, timespan, description)
 	
 	var input1 = document.createElement("input");
 	input1.setAttribute("type", "text");
-	input1.setAttribute("name", "<%=Config.HtmlFormComponents.JOB_COMPANY_NAME%>");
+	input1.setAttribute("name", "JOB_COMPANY_NAME");
 	input1.setAttribute("value", company_name);
 	li.appendChild(input1);
 	
@@ -327,7 +176,7 @@ function addJobItem(company_name, position, timespan, description)
 	
 	var input2 = document.createElement("input");
 	input2.setAttribute("type", "text");
-	input2.setAttribute("name", "<%=Config.HtmlFormComponents.JOB_POSITION%>");
+	input2.setAttribute("name", "JOB_POSITION");
 	input2.setAttribute("value", position);
 	li.appendChild(input2);
 	
@@ -344,7 +193,7 @@ function addJobItem(company_name, position, timespan, description)
 	
 	var input3 = document.createElement("input");
 	input3.setAttribute("type", "text");
-	input3.setAttribute("name", "<%=Config.HtmlFormComponents.JOB_TIMESPAN%>");
+	input3.setAttribute("name", "JOB_TIMESPAN");
 	input3.setAttribute("value", timespan);
 	li.appendChild(input3);
 	li.appendChild(document.createElement("br"));
@@ -355,7 +204,7 @@ function addJobItem(company_name, position, timespan, description)
 	li.appendChild(document.createElement("br"));
 	
 	var textarea = document.createElement("textarea");
-	textarea.setAttribute("name", "<%=Config.HtmlFormComponents.JOB_DESCRIPTION%>");
+	textarea.setAttribute("name", "JOB_DESCRIPTION");
 	textarea.setAttribute("rows", "5");
 	textarea.setAttribute("cols", "58");
 	textarea.appendChild(document.createTextNode(description));
@@ -379,7 +228,7 @@ function addEduItem(school_name, graduation_time, degree, description)
 	
 	var input1 = document.createElement("input");
 	input1.setAttribute("type", "text");
-	input1.setAttribute("name", "<%=Config.HtmlFormComponents.EDU_SCHOOL_NAME%>");
+	input1.setAttribute("name", "EDU_SCHOOL_NAME");
 	input1.setAttribute("value", school_name);
 	li.appendChild(input1);
 	
@@ -389,7 +238,7 @@ function addEduItem(school_name, graduation_time, degree, description)
 	
 	var input2 = document.createElement("input");
 	input2.setAttribute("type", "text");
-	input2.setAttribute("name", "<%=Config.HtmlFormComponents.EDU_GRADUATION_TIME%>");
+	input2.setAttribute("name", "EDU_GRADUATION_TIME");
 	input2.setAttribute("value", graduation_time);
 	li.appendChild(input2);
 	
@@ -406,7 +255,7 @@ function addEduItem(school_name, graduation_time, degree, description)
 	
 	var input3 = document.createElement("input");
 	input3.setAttribute("type", "text");
-	input3.setAttribute("name", "<%=Config.HtmlFormComponents.EDU_DEGREE%>");
+	input3.setAttribute("name", "EDU_DEGREE");
 	input3.setAttribute("value", degree);
 	li.appendChild(input3);
 	li.appendChild(document.createElement("br"));
@@ -417,7 +266,7 @@ function addEduItem(school_name, graduation_time, degree, description)
 	li.appendChild(document.createElement("br"));
 	
 	var textarea = document.createElement("textarea");
-	textarea.setAttribute("name", "<%=Config.HtmlFormComponents.EDU_DESCRIPTION%>");
+	textarea.setAttribute("name", "EDU_DESCRIPTION");
 	textarea.setAttribute("rows", "5");
 	textarea.setAttribute("cols", "58");
 	textarea.appendChild(document.createTextNode(description));
@@ -511,52 +360,84 @@ function validate(thisForm)
 
 var isSubmit = false;
 
-function displayData()
+function loadData()
 {
-	<%
-	//skills.add(new Skill("C++", "expert"));
-	//projects.add(new Project("MFC", "2015-2016", "PM"));
-	//jobs.add(new Job("MS", "PM", "2015-2016", "GOOD"));
-	//eduExperiences.add(new EduExperience("SYSU", "2012-2016", "Bachelor", "GPA=3.8"));
-	%>
-	<%for (int i = 0; i < skills.size(); ++i)
-	{%>
-		addSkillItem("<%=skills.get(i).Name%>", "<%=skills.get(i).Level%>");
-	<%}%>
-	<%for (int i = 0; i < projects.size(); ++i)
-	{%>
-		addProjectItem("<%=projects.get(i).Name%>", "<%=projects.get(i).TimeSpan%>", "<%=projects.get(i).Description%>");
-	<%}%>
-	<%for (int i = 0; i < jobs.size(); ++i)
-	{%>
-		addJobItem("<%=jobs.get(i).CompanyName%>", "<%=jobs.get(i).Position%>", "<%=jobs.get(i).TimeSpan%>", "<%=jobs.get(i).Description%>");
-	<%}%>
-	<%for (int i = 0; i < eduExperiences.size(); ++i)
-	{%>
-		addEduItem("<%=eduExperiences.get(i).SchoolName%>", "<%=eduExperiences.get(i).GraduationTime%>", "<%=eduExperiences.get(i).Degree%>", "<%=eduExperiences.get(i).Description%>");
-	<%}%>
+	var xmlHttp1, xmlHttp2, xmlHttp3, xmlHttp4;
+	if (window.XMLHttpRequest)
+		{
+		xmlHttp1 = new XMLHttpRequest();
+		xmlHttp2 = new XMLHttpRequest();
+		xmlHttp3 = new XMLHttpRequest();
+		xmlHttp4 = new XMLHttpRequest();
+		}
+	else
+		{
+		xmlHttp1=new ActiveXObject("Microsoft.XMLHTTP");
+		xmlHttp2=new ActiveXObject("Microsoft.XMLHTTP");
+		xmlHttp3=new ActiveXObject("Microsoft.XMLHTTP");
+		xmlHttp4=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+	xmlHttp1.onreadystatechange=function()
+	{
+		if (xmlHttp1.readyState == 4 && xmlHttp1.status == 200)
+			{
+				var jsonArray1 = JSON.parse(xmlHttp1.responseText);
+				for(var i1 = 0; i1 < jsonArray1.length; ++i1)
+					{
+					addSkillItem(jsonArray1[i1].Name, jsonArray1[i1].Level);
+					}
+			}
+	}
+	xmlHttp2.onreadystatechange=function()
+	{
+		if (xmlHttp2.readyState == 4 && xmlHttp2.status == 200)
+			{
+				var jsonArray2 = JSON.parse(xmlHttp2.responseText);
+				for(var i2 = 0; i2 < jsonArray2.length; ++i2)
+					{
+					addProjectItem(jsonArray2[i2].Name, jsonArray2[i2].TimeSpan, jsonArray2[i2].Description);
+					}
+			}
+	}
+	xmlHttp3.onreadystatechange=function()
+	{
+		if (xmlHttp3.readyState == 4 && xmlHttp3.status == 200)
+			{
+				var jsonArray3 = JSON.parse(xmlHttp3.responseText);
+				for(var i3 = 0; i3 < jsonArray3.length; ++i3)
+					{
+					addJobItem(jsonArray3[i3].CompanyName, jsonArray3[i3].Position, jsonArray3[i3].TimeSpan, jsonArray3[i3].Description)
+					}
+			}
+	}
+	xmlHttp4.onreadystatechange=function()
+	{
+		if (xmlHttp4.readyState == 4 && xmlHttp4.status == 200)
+			{
+				var jsonArray4 = JSON.parse(xmlHttp4.responseText);
+				for(var i4 = 0; i4 < jsonArray4.length; ++i4)
+					{
+					addEduItem(jsonArray4[i4].SchoolName, jsonArray4[i4].GraduationTime, jsonArray4[i4].Degree, jsonArray4[i4].Description)
+					}
+			}
+	}
+	//xmlHttp1.open("GET", String.format("getSkills.jsp?id=%s&time=%d", userId, System.nanoTime()), true);
+	xmlHttp1.open("GET", "getSkills.jsp?id=" + userId, true);
+	xmlHttp1.send();
+	xmlHttp2.open("GET", "getProjects.jsp?id=" + userId, true);
+	xmlHttp2.send();
+	xmlHttp3.open("GET", "getJobs.jsp?id=" + userId, true);
+	xmlHttp3.send();
+	xmlHttp4.open("GET", "getEdu.jsp?id=" + userId, true);
+	xmlHttp4.send();
 }
 
-window.onload = function()
-{
-	var li = document.getElementsByTagName("li");
-	var isSkillCloned = false;
-	var isProjCloned = false;
-	var isJobCloned = false;
-	var isEduCloned = false;
-	
-	/*
-	addSkillItem("Coding", "expert");
-	addProjectItem("C++", "2014-2015", "Good!");
-	addJobItem("C++ programmer", "CTO", "2014-2015", "Good!");
-	addEduItem("SYSU", "2016", "Bachelor", "Good!");
-	*/
-	displayData();
+window.onload = function() {
+	loadData();
 }
-
 </script>
 <body>
-	<form action="sheet.jsp" method="post" onsubmit="return validate(this)">
+	<form action="Submit.jsp" method="post" onsubmit="return validate(this)">
 		<div class="container" id="div_basic">
 			<h1>基本信息</h1>
 			<div>
