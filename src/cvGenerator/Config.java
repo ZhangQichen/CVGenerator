@@ -1,14 +1,6 @@
 package cvGenerator;
 
 public class Config {
-	public class DB {
-
-	}
-
-	public class Host {
-
-	}
-
 	public class Keys // Keys for parameters, cookies and sessions.
 	{
 		public static final String ID = "ID";

@@ -1,3 +1,5 @@
+<%@page import="java.net.URLDecoder"%>
+<%@page import="java.net.URLEncoder"%>
 <%@ page language="java" contentType="text/html; charset=utf-8" import="java.util.ArrayList, cvGenerator.*, java.io.*"
     pageEncoding="utf-8"%>
 <%!
@@ -76,6 +78,7 @@ void ReadEdu(HttpServletRequest request)
 
 void WriteFile(OutputStream oStream, String filepath)
 {
+	
    try {
       FileInputStream in = new FileInputStream(filepath);
       int bytesRead = 0;
@@ -91,10 +94,8 @@ void WriteFile(OutputStream oStream, String filepath)
 }
 %>
 <%
-out.print("<strong>正在提交信息...</strong>");
 request.setCharacterEncoding("utf-8");
 method = request.getMethod();
-System.out.print(method);
 if (method.equalsIgnoreCase("post"))
 {
 	ReadBasicInfo(request);
@@ -121,7 +122,8 @@ if (method.equalsIgnoreCase("post"))
 	cookie_id.setPath("/");
 	cookie_id.setMaxAge(3600*5);
 	response.addCookie(cookie_id);
-	Cookie cookie_username = new Cookie(Config.Keys.NAME, username);
+	
+	Cookie cookie_username = new Cookie(Config.Keys.NAME, URLEncoder.encode(username, "utf-8"));
 	cookie_username.setPath("/");
 	cookie_username.setMaxAge(3600*5);
 	response.addCookie(cookie_username);
@@ -133,14 +135,30 @@ if (method.equalsIgnoreCase("post"))
 	cookie_email.setPath("/");
 	cookie_email.setMaxAge(3600*5);
 	response.addCookie(cookie_email);
+	// Generate doc
+	EduExperience[] e = new EduExperience[eduExperiences.size()];
+	Job[] j = new Job[jobs.size()];
+	Project[] p = new Project[projects.size()];
+	Skill[] s = new Skill[skills.size()];
+	eduExperiences.toArray(e);
+	jobs.toArray(j);
+	projects.toArray(p);
+	skills.toArray(s);
+	
+	String filepath = application.getRealPath("/file");
+	
+	PoiOutput poiOutput = new PoiOutput(newInfo, e,j,p,s, filepath);
+	filepath = poiOutput.generate();
+	response.setHeader("Content-disposition", "attachment; filename=\"" + "CV.docx" + "\"");
+	response.setHeader("Content-Encoding", "utf-8");
+	WriteFile(response.getOutputStream(), filepath);
 }
-System.out.println("Back to index.jsp");
-response.sendRedirect("index.jsp?time=%d" + System.nanoTime());
+//response.sendRedirect("index.jsp?time=%d" + System.nanoTime());
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>提交信息</title>
 </head>
 <body>

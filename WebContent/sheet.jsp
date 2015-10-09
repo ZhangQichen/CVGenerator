@@ -354,7 +354,10 @@ function validate(thisForm)
 	
 	if (isSubmitAllowed == false)
 		{alert("请将必填项填完！")}
-	
+	if (isSubmitAllowed == true)
+		{
+		alert("简历正在生成，这可能会占用几秒钟时间，请稍后");
+		}
 	return isSubmitAllowed;
 }
 
@@ -421,14 +424,13 @@ function loadData()
 					}
 			}
 	}
-	//xmlHttp1.open("GET", String.format("getSkills.jsp?id=%s&time=%d", userId, System.nanoTime()), true);
-	xmlHttp1.open("GET", "getSkills.jsp?id=" + userId, true);
+	xmlHttp1.open("GET", "getSkills.jsp?id=" + userId + "&rand=" + Math.random(), true);
 	xmlHttp1.send();
-	xmlHttp2.open("GET", "getProjects.jsp?id=" + userId, true);
+	xmlHttp2.open("GET", "getProjects.jsp?id=" + userId + "&rand=" + Math.random(), true);
 	xmlHttp2.send();
-	xmlHttp3.open("GET", "getJobs.jsp?id=" + userId, true);
+	xmlHttp3.open("GET", "getJobs.jsp?id=" + userId + "&rand=" + Math.random(), true);
 	xmlHttp3.send();
-	xmlHttp4.open("GET", "getEdu.jsp?id=" + userId, true);
+	xmlHttp4.open("GET", "getEdu.jsp?id=" + userId + "&rand=" + Math.random(), true);
 	xmlHttp4.send();
 }
 
